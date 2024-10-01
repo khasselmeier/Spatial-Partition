@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
+using TMPro;
 
 namespace SpatialPartitionPattern
 {
@@ -8,6 +10,12 @@ namespace SpatialPartitionPattern
     {
         public GameObject friendlyObj;
         public GameObject enemyObj;
+
+        public TMP_Text timeSpentText;
+        public TMP_Text spatialPartitionStatusText;
+        /*public TMP_InputField soldierInputField;
+        public Button spawnButton;
+        public TMP_Text spawnButtonText;*/
 
         //Change materials to detect which enemy is the closest
         public Material enemyMaterial;
@@ -29,11 +37,13 @@ namespace SpatialPartitionPattern
         int cellSize = 10;
 
         //Number of soldiers on each team
-        int numberOfSoldiers = 100;
+        int numberOfSoldiers = 1000;
 
         //The Spatial Partition grid
         Grid grid;
 
+        float updateTimeSpent = 0f;
+        bool isSpatialPartitionEnabled = true;
 
         void Start()
         {
@@ -68,48 +78,72 @@ namespace SpatialPartitionPattern
                 //Parent it 
                 newFriendly.transform.parent = friendlyParent;
             }
-        }
 
+            UpdateSpatialPartitionStatusText();
+        }
 
         void Update()
         {
-            //Move the enemies
+            // Toggle spatial partitioning on/off when the spacebar is pressed
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                isSpatialPartitionEnabled = !isSpatialPartitionEnabled;
+                UpdateSpatialPartitionStatusText();  // Update UI to reflect toggle status
+            }
+
+            // Start measuring time
+            float startTime = Time.realtimeSinceStartup;
+
+            // Move the enemies
             for (int i = 0; i < enemySoldiers.Count; i++)
             {
                 enemySoldiers[i].Move();
             }
 
-            //Reset material of the closest enemies
+            // Reset material of the closest enemies
             for (int i = 0; i < closestEnemies.Count; i++)
             {
                 closestEnemies[i].soldierMeshRenderer.material = enemyMaterial;
             }
 
-            //Reset the list with closest enemies
             closestEnemies.Clear();
 
-            //For each friendly, find the closest enemy and change its color and chase it
+            // For each friendly, find the closest enemy and change its color and chase it
             for (int i = 0; i < friendlySoldiers.Count; i++)
             {
-                //Soldier closestEnemy = FindClosestEnemySlow(friendlySoldiers[i]);
+                Soldier closestEnemy;
 
-                //The fast version with spatial partition
-                Soldier closestEnemy = grid.FindClosestEnemy(friendlySoldiers[i]);
+                // Use spatial partitioning if enabled, otherwise use the slow method
+                if (isSpatialPartitionEnabled)
+                {
+                    // Find closest enemy using grid (spatial partitioning)
+                    closestEnemy = grid.FindClosestEnemy(friendlySoldiers[i]);
+                }
+                else
+                {
+                    // Use slow method to find closest enemy without spatial partitioning
+                    closestEnemy = FindClosestEnemySlow(friendlySoldiers[i]);
+                }
 
-                //If we found an enemy
+                // If we found an enemy, chase it
                 if (closestEnemy != null)
                 {
-                    //Change material
                     closestEnemy.soldierMeshRenderer.material = closestEnemyMaterial;
-
                     closestEnemies.Add(closestEnemy);
-
-                    //Move the friendly in the direction of the enemy
-                    friendlySoldiers[i].Move(closestEnemy);
+                    friendlySoldiers[i].Move(closestEnemy);  // Friendly chases the closest enemy
                 }
             }
-        }
 
+            // Calculate time spent in Update
+            float endTime = Time.realtimeSinceStartup;
+            updateTimeSpent = endTime - startTime;
+
+            // Display the time spent in Update
+            if (timeSpentText != null)
+            {
+                timeSpentText.text = "Time spent in Update: " + updateTimeSpent.ToString("F6") + " seconds";
+            }
+        }
 
         //Find the closest enemy - slow version
         Soldier FindClosestEnemySlow(Soldier soldier)
@@ -134,6 +168,14 @@ namespace SpatialPartitionPattern
             }
 
             return closestEnemy;
+        }
+
+        void UpdateSpatialPartitionStatusText()
+        {
+            if (spatialPartitionStatusText != null)
+            {
+                spatialPartitionStatusText.text = "Spatial Partition: " + (isSpatialPartitionEnabled ? "Enabled" : "Disabled");
+            }
         }
     }
 }
