@@ -13,9 +13,6 @@ namespace SpatialPartitionPattern
 
         public TMP_Text timeSpentText;
         public TMP_Text spatialPartitionStatusText;
-        /*public TMP_InputField soldierInputField;
-        public Button spawnButton;
-        public TMP_Text spawnButtonText;*/
 
         //Change materials to detect which enemy is the closest
         public Material enemyMaterial;
@@ -37,7 +34,7 @@ namespace SpatialPartitionPattern
         int cellSize = 10;
 
         //Number of soldiers on each team
-        int numberOfSoldiers = 300;
+        int numberOfSoldiers = 100;
 
         //The Spatial Partition grid
         Grid grid;
