@@ -37,7 +37,7 @@ namespace SpatialPartitionPattern
         int cellSize = 10;
 
         //Number of soldiers on each team
-        int numberOfSoldiers = 1000;
+        int numberOfSoldiers = 300;
 
         //The Spatial Partition grid
         Grid grid;
